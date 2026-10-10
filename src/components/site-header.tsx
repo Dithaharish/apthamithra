@@ -5,6 +5,7 @@ const links = [
   { href: "#how-it-works", label: "How it Works" },
   { href: "#pricing", label: "Pricing" },
   { href: "#testimonials", label: "Testimonials" },
+  { href: "/track", label: "Track Order" },
   { href: "#faq", label: "FAQ" },
 ]
 export function SiteHeader() {
