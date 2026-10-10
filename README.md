@@ -258,8 +258,12 @@ Supabase dashboard → **Table Editor** to see every row your users create.
 
 | Name | Exposed to browser | Notes |
 |---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Yes — safe | The REST endpoint |
+| `SUPABASE_URL` | **No — server only** | The REST endpoint. Not secret, but there is no reason to expose it since the app only talks to Supabase from the server. |
 | `SUPABASE_SERVICE_ROLE_KEY` | **No — server only** | Bypasses row-level security. Never add a `NEXT_PUBLIC_` prefix, never commit it. |
+
+Both variables deliberately omit the `NEXT_PUBLIC_` prefix so Next.js keeps them
+out of the client bundle. A `NEXT_PUBLIC_` prefix inlines the value into
+JavaScript sent to the browser, which is unnecessary for a server-only client.
 
 `.env` is gitignored. `.env.example` holds placeholders only.
 
@@ -328,7 +332,7 @@ explicitly.
 
 The live site historically used an in-memory layer. That is now replaced by
 Supabase, so accounts, appointments and orders **persist** across restarts and
-deploys. Verify `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are
+deploys. Verify `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are
 set in the Vercel project, otherwise the app throws a clear
 "Supabase is not configured" error instead of silently losing data.
 

@@ -280,7 +280,7 @@ NextAuth 4 (credentials provider), Prisma schema for the production model.
 ### Outstanding
 | Item | Status |
 |---|---|
-| Supabase env vars on Vercel | Add `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`, then redeploy — until then the live site cannot read the database |
+| Supabase env vars on Vercel | Add `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`, then redeploy — until then the live site cannot read the database |
 | Payment gateways | Awaiting API keys |
 | Courier APIs | Awaiting API keys |
 | WhatsApp / email notifications | Awaiting API keys |
@@ -306,7 +306,7 @@ client — no call sites need to change.
 ## 9. Immediate next steps
 
 1. **Add the Supabase env vars to Vercel and redeploy.**
-   `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` work locally but
+   `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` work locally but
    are not yet set on Vercel, so the live site cannot reach the database until
    they are added.
 2. **Confirm sign-in works on the live site.** Sign in at
