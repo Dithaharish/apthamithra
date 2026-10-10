@@ -1,0 +1,161 @@
+generator client {
+  provider = "prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  passwordHash  String
+  name          String?
+  phone         String?
+  country       String?
+  timezone      String?
+  language      String?
+  role          Role           @default(CUSTOMER)
+  createdAt     DateTime       @default(now())
+  appointments  Appointment[]
+  orders        Order[]
+  reviews       Review[]
+  addresses     Address[]
+}
+
+enum Role {
+  CUSTOMER
+  SHOPPER
+  ADMIN
+}
+
+model Shopper {
+  id           String       @id @default(cuid())
+  name         String
+  city         String
+  languages    String[]
+  rating       Float         @default(5)
+  bio          String?
+  photo        String?
+  available    Boolean       @default(true)
+  appointments Appointment[]
+}
+
+model Shop {
+  id        String   @id @default(cuid())
+  name      String
+  city      String
+  area      String?
+  category  String[]
+  rating    Float    @default(5)
+  verified  Boolean  @default(false)
+  orders    Order[]
+}
+
+model Appointment {
+  id          String      @id @default(cuid())
+  customerId  String
+  shopperId   String?
+  date        DateTime
+  type        String
+  status      String      @default("scheduled")
+  notes       String?
+  purpose    String?
+  language    String?
+  timezone    String?
+  createdAt   DateTime    @default(now())
+  customer    User        @relation(fields: [customerId], references: [id])
+  shopper     Shopper?    @relation(fields: [shopperId], references: [id])
+  order       Order[]
+}
+
+model Order {
+  id            String       @id @default(cuid())
+  customerId    String
+  appointmentId String?
+  shopId        String?
+  status        String       @default("pending")
+  totalAmount   Float?
+  currency      String       @default("INR")
+  notes         String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  customer      User         @relation(fields: [customerId], references: [id])
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id])
+  shop          Shop?        @relation(fields: [shopId], references: [id])
+  items         OrderItem[]
+  shipments     Shipment[]
+  payments      Payment[]
+  qcImages      QCImage[]
+  reviews       Review[]
+}
+
+model OrderItem {
+  id       String @id @default(cuid())
+  orderId  String
+  name     String
+  shopName String?
+  price    Float
+  quantity Int
+  status   String @default("pending")
+  order    Order   @relation(fields: [orderId], references: [id])
+}
+
+model Shipment {
+  id          String   @id @default(cuid())
+  orderId     String
+  courier     String
+  trackingNo  String?
+  weight      Float?
+  destination String
+  createdAt   DateTime @default(now())
+  order       Order    @relation(fields: [orderId], references: [id])
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  orderId   String
+  amount    Float
+  currency  String
+  method    String
+  status    String  @default("pending")
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id])
+}
+
+model QCImage {
+  id        String   @id @default(cuid())
+  orderId   String
+  url       String
+  caption   String?
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  order     Order    @relation(fields: [orderId], references: [id])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  customerId String
+  orderId   String
+  rating    Int
+  title     String?
+  body      String
+  photo     String?
+  createdAt DateTime @default(now())
+  customer  User     @relation(fields: [customerId], references: [id])
+  order     Order    @relation(fields: [orderId], references: [id])
+}
+
+model Address {
+  id         String  @id @default(cuid())
+  customerId String
+  name       String
+  line1      String
+  city       String
+  state      String?
+  postal     String
+  country    String
+  isDefault  Boolean @default(false)
+  customer   User    @relation(fields: [customerId], references: [id])
+}
