@@ -267,6 +267,48 @@ function dataToRow(data: Record<string, unknown>): Record<string, unknown> {
 /* Generic helpers                                                     */
 /* ------------------------------------------------------------------ */
 
+interface QueryOptions {
+  orderBy?: { column: string; ascending?: boolean }
+  limit?: number
+  offset?: number
+  search?: { columns: string[]; term: string }
+}
+
+async function selectPage<T>(
+  table: string,
+  where: Record<string, unknown>,
+  options: QueryOptions = {}
+): Promise<{ rows: T[]; total: number }> {
+  const { orderBy, limit, offset, search } = options
+
+  let query = getClient()
+    .from(table)
+    .select("*", { count: "exact" })
+
+  for (const [column, value] of whereToFilters(where)) {
+    query = query.eq(column, value as string)
+  }
+  // Case-insensitive "contains" across several columns.
+  if (search?.term) {
+    query = query.or(
+      search.columns.map((c) => `${c}.ilike.%${search.term.replace(/[%,()]/g, "")}%`).join(",")
+    )
+  }
+  if (orderBy) {
+    query = query.order(orderBy.column, { ascending: orderBy.ascending ?? true })
+  }
+  if (typeof limit === "number") {
+    query = query.range(offset ?? 0, (offset ?? 0) + limit - 1)
+  }
+
+  const { data, error, count } = await query
+  if (error) throw new Error(`${table}.findMany failed: ${error.message}`)
+  return {
+    rows: (data ?? []).map((row) => rowToModel<T>(row as Record<string, unknown>)),
+    total: count ?? 0,
+  }
+}
+
 async function findMany<T>(
   table: string,
   where: Record<string, unknown> = {},
@@ -404,6 +446,8 @@ export function randomToken(): string {
 export const db = {
   user: {
     findUnique: (where: { email?: string; id?: string }) => findUnique<User>("users", where),
+    findPage: (where: Record<string, any> = {}, options: QueryOptions = {}) =>
+      selectPage<User>("users", where, options),
     /**
      * Looks a user up by a reset or verification token. Returns null when the
      * token columns have not been migrated yet.
@@ -468,8 +512,13 @@ export const db = {
 
   order: {
     findUnique: (where: { id?: string }) => findUnique<Order>("orders", where),
-    findMany: (where: Record<string, unknown> = {}) =>
+    findMany: (where: Record<string, any> = {}) =>
       findMany<Order>("orders", where, { column: "created_at", ascending: false }),
+    findPage: (where: Record<string, any> = {}, options: QueryOptions = {}) =>
+      selectPage<Order>("orders", where, {
+        orderBy: { column: "created_at", ascending: false },
+        ...options,
+      }),
     create: ({ data }: { data: Partial<Order> }) => insertRow<Order>("orders", data),
     update: (where: { id: string }, data: Partial<Order>) =>
       updateRow<Order>("orders", where.id, data),
