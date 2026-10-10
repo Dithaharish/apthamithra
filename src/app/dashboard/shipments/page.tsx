@@ -1,68 +1,71 @@
+export const instant = false
 
 import { Badge } from "@/components/ui/badge"
+import { Truck, MapPin, Package } from "lucide-react"
+import { getCustomerContext, getCustomerData, isr, STATUS_STYLE } from "@/lib/customer"
+import { ORDER_STATUS_LABEL } from "@/lib/db"
 
-import { MapPin, CreditCard, Camera, FileText } from "lucide-react"
+export default async function CustomerShipmentsPage() {
+  const customer = await getCustomerContext()
+  const { orders, shipments } = await getCustomerData(customer.userId)
 
-const timeline = [
-  { date: "Oct 8, 2026", time: "10:00", title: "Order confirmed", desc: "Customer approved quotation of ₹48,500", done: true },
-  { date: "Oct 9, 2026", time: "11:30", title: "Purchasing started", desc: "Shopper visited Karol Bagh, Delhi — 8 items", done: true },
-  { date: "Oct 10, 2026", time: "09:00", title: "QC photos uploaded", desc: "5 photos + 2 videos shared for approval", done: true },
-  { date: "Oct 11, 2026", time: "14:20", title: "QC Approved", desc: "Customer approved all items", done: true },
-  { date: "Oct 12, 2026", time: "08:00", title: "Payment received", desc: "₹48,500 via Stripe", done: true },
-  { date: "Oct 13, 2026", time: "15:00", title: "Packed", desc: "Export-grade packing complete", done: true },
-  { date: "Oct 14, 2026", time: "09:30", title: "Shipped", desc: "DHL Express — AWB DHL-9876543210", done: true, highlight: true },
-  { date: "Oct 16, 2026", time: null, title: "Estimated delivery", desc: "New Jersey, USA", done: false, pending: true },
-]
+  const rows = orders
+    .filter((o) => shipments.some((s) => s.orderId === o.id))
+    .map((order) => ({ order, shipment: shipments.find((s) => s.orderId === order.id)! }))
 
-export default function ShipmentsPage() {
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Shipments</h1>
-        <p className="text-zinc-600 dark:text-zinc-400 text-sm">Live tracking and customs status.</p>
+        <p className="text-zinc-600 dark:text-zinc-400 text-sm">Live tracking and delivery status.</p>
       </div>
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="font-medium">ORD-2026-0101</div>
-              <div className="text-xs text-zinc-500">DHL Express • AWB DHL-9876543210</div>
-            </div>
-            <Badge className="bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300">In Transit</Badge>
-          </div>
-          <div className="mt-6 relative pl-6 space-y-0">
-            {timeline.map((t, i) => (
-              <div key={i} className="relative pb-6 last:pb-0">
-                <div className="absolute -left-[1.35rem] top-1 h-3 w-3 rounded-full border-2 border-white dark:border-zinc-950" style={{ background: t.done ? t.highlight ? "#0ea5e9" : "#22c55e" : "#d4d4d4" }} />
-                {i < timeline.length - 1 && <div className="absolute -left-[1.35rem] top-3 w-px h-full bg-zinc-200 dark:bg-zinc-700" />}
-                <div className={t.highlight ? "font-medium" : ""}>
-                  {t.date}{t.time ? ` • ${t.time}` : ""} — {t.title}
-                  {t.highlight && <Badge className="ml-2 bg-sky-100 text-sky-700 text-[10px]">Current</Badge>}
-                </div>
-                <div className="text-sm text-zinc-600 dark:text-zinc-400">{t.desc}</div>
-              </div>
-            ))}
-          </div>
+
+      {rows.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-700 p-10 text-center text-sm text-zinc-500">
+          No shipments yet. Tracking appears once an order is shipped.
         </div>
+      ) : (
         <div className="space-y-4">
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
-            <div className="text-sm font-medium flex items-center gap-2"><MapPin className="h-4 w-4 text-amber-600" /> Destination</div>
-            <div className="mt-2 text-sm">New Jersey, USA</div>
-          </div>
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
-            <div className="text-sm font-medium flex items-center gap-2"><CreditCard className="h-4 w-4 text-amber-600" /> Payment</div>
-            <div className="mt-2 text-sm">₹48,500 • Paid via Stripe</div>
-          </div>
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
-            <div className="text-sm font-medium flex items-center gap-2"><Camera className="h-4 w-4 text-amber-600" /> QC Approved</div>
-            <div className="mt-2 text-sm">5 photos • 2 videos • All approved</div>
-          </div>
-          <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
-            <div className="text-sm font-medium flex items-center gap-2"><FileText className="h-4 w-4 text-amber-600" /> Customs</div>
-            <div className="mt-2 text-sm">Declaration prepared • Awaiting clearance</div>
-          </div>
+          {rows.map(({ order, shipment }) => (
+            <div key={order.id} className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-sky-100 dark:bg-sky-900/40 flex items-center justify-center">
+                    <Truck className="h-5 w-5 text-sky-600" />
+                  </div>
+                  <div>
+                    <div className="font-mono text-xs">{order.id}</div>
+                    <div className="text-sm font-medium">{shipment.courier}</div>
+                  </div>
+                </div>
+                <Badge className={STATUS_STYLE[order.status]}>{ORDER_STATUS_LABEL[order.status]}</Badge>
+              </div>
+
+              <div className="mt-4 grid sm:grid-cols-3 gap-3 text-sm">
+                <div className="rounded-lg bg-zinc-50 dark:bg-zinc-800/50 p-3">
+                  <div className="text-xs text-zinc-500">Tracking number</div>
+                  <div className="font-mono text-xs">{shipment.trackingNo ?? "Pending"}</div>
+                </div>
+                <div className="rounded-lg bg-zinc-50 dark:bg-zinc-800/50 p-3">
+                  <div className="text-xs text-zinc-500">Weight</div>
+                  <div className="font-medium">{shipment.weight ? `${shipment.weight} kg` : "—"}</div>
+                </div>
+                <div className="rounded-lg bg-zinc-50 dark:bg-zinc-800/50 p-3">
+                  <div className="text-xs text-zinc-500">Order value</div>
+                  <div className="font-medium">{isr(order.subtotal + order.serviceFee + order.handling + order.shipping)}</div>
+                </div>
+              </div>
+
+              <div className="mt-3 flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                <MapPin className="h-4 w-4 text-zinc-400" /> {shipment.destination}
+              </div>
+              <div className="mt-1 flex items-center gap-2 text-xs text-zinc-500">
+                <Package className="h-3.5 w-3.5" /> Dispatched {shipment.createdAt.toISOString().split("T")[0]}
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
+      )}
     </div>
   )
 }

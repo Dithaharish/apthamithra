@@ -201,6 +201,66 @@ async function main() {
     )
   }
 
+  // Customer workspace must read the logged-in customer's own data
+  for (const [label, path] of [
+    ["customer dashboard", "/dashboard"],
+    ["customer orders", "/dashboard/orders"],
+    ["customer appointments", "/dashboard/appointments"],
+    ["customer shipments", "/dashboard/shipments"],
+    ["customer quotes", "/dashboard/quotes"],
+    ["customer profile", "/dashboard/profile"],
+  ]) {
+    const res = await fetch(`${BASE}${path}`, { headers: { cookie: customer }, redirect: "manual" })
+    check(`${label} renders`, res.status === 200, `status ${res.status}`)
+  }
+
+  // Customer isolation: a customer must not see the shopper workspace
+  const crossRole = await fetch(`${BASE}/shopper`, { headers: { cookie: customer }, redirect: "manual" })
+  check("customer cannot open shopper workspace", crossRole.status >= 300 && crossRole.status < 400, `status ${crossRole.status}`)
+
+  // Address book round trip
+  const addr = await json("/api/addresses", customer, {
+    method: "POST",
+    body: JSON.stringify({
+      name: "Smoke Test Home",
+      line1: "1 Test Street",
+      city: "Testville",
+      state: "CA",
+      postal: "90001",
+      country: "USA",
+    }),
+  })
+  check("customer adds address", addr.status === 200, `id=${addr.body?.address?.id}`)
+
+  const addrList = await json("/api/addresses", customer)
+  check(
+    "address persisted and returned",
+    addrList.status === 200 && (addrList.body?.addresses ?? []).some((a) => a.name === "Smoke Test Home")
+  )
+
+  if (addr.body?.address?.id) {
+    const del = await json("/api/addresses", customer, {
+      method: "DELETE",
+      body: JSON.stringify({ id: addr.body.address.id }),
+    })
+    check("customer deletes address", del.status === 200, `status ${del.status}`)
+  }
+
+  // Review rules
+  if (refs.undeliveredOrder) {
+    const early = await json("/api/reviews", customer, {
+      method: "POST",
+      body: JSON.stringify({ orderId: refs.undeliveredOrder, rating: 5, body: "Too early to review this order." }),
+    })
+    check("review blocked before delivery", early.status === 400, `status ${early.status}`)
+  }
+
+  const badRating = await json("/api/reviews", customer, {
+    method: "POST",
+    body: JSON.stringify({ orderId: refs.orders?.[0], rating: 9, body: "Rating out of range." }),
+  })
+  check("review rejects rating above 5", badRating.status === 400, `status ${badRating.status}`)
+
   const failed = results.filter((r) => !r.pass)
   console.log(`\n${results.length - failed.length}/${results.length} checks passed`)
   if (failed.length) {

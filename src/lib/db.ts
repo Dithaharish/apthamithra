@@ -317,6 +317,15 @@ async function updateRow<T>(
   return row ? rowToModel<T>(row as Record<string, unknown>) : null
 }
 
+async function deleteRow(table: string, id: string): Promise<boolean> {
+  const { error, count } = await getClient()
+    .from(table)
+    .delete({ count: "exact" })
+    .eq("id", id)
+  if (error) throw new Error(`${table}.delete failed: ${error.message}`)
+  return (count ?? 0) > 0
+}
+
 /* ------------------------------------------------------------------ */
 /* Order lifecycle                                                     */
 /* ------------------------------------------------------------------ */
@@ -430,5 +439,7 @@ export const db = {
 
   address: {
     findMany: (where: Record<string, unknown> = {}) => findMany<Address>("addresses", where),
+    create: ({ data }: { data: Partial<Address> }) => insertRow<Address>("addresses", data),
+    delete: (where: { id: string }) => deleteRow("addresses", where.id),
   },
 }

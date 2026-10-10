@@ -31,6 +31,8 @@ export async function GET() {
       appointments: appointments.map((a) => a.id),
       orders: orders.map((o) => o.id),
       reviews: reviews.map((r) => r.id),
+      // An order that has not been delivered, for testing review guards.
+      undeliveredOrder: orders.find((o) => o.status !== "delivered")?.id ?? null,
     },
   })
 }
