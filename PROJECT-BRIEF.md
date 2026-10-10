@@ -75,7 +75,10 @@ packing, customs and international delivery end to end.
 | `/contact` | Phone, WhatsApp, email, address, languages |
 | `/book` | Public appointment booking |
 | `/track-order` | Order lookup by ID |
-| `/legal` | Terms, privacy, refund and customs policy |
+| `/legal` | Legal index |
+| `/legal/terms` | Terms of service |
+| `/legal/privacy` | Privacy policy |
+| `/legal/refunds` | Refund policy |
 
 ### Authenticated customer
 | Route | Purpose |

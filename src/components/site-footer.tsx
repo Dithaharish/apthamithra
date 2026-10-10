@@ -39,8 +39,13 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-zinc-200 dark:border-zinc-800">
         <div className="mx-auto max-w-6xl px-6 py-5 flex flex-wrap justify-between items-center text-xs text-zinc-500">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-zinc-500">
           <span>© 2026 Apthamithra. All rights reserved.</span>
-          <span>Privacy • Terms • GST Invoices</span>
+          <Link href="/legal/terms" className="hover:text-zinc-900 dark:hover:text-white">Terms</Link>
+          <Link href="/legal/privacy" className="hover:text-zinc-900 dark:hover:text-white">Privacy</Link>
+          <Link href="/legal/refunds" className="hover:text-zinc-900 dark:hover:text-white">Refunds</Link>
+          <span>GST invoices provided</span>
+        </div>
         </div>
       </div>
     </footer>
