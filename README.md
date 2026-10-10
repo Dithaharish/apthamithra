@@ -241,37 +241,96 @@ user.email = Dithaharish@users.noreply.github.com
 `.gitattributes` normalises line endings to LF so Windows checkouts do not
 create spurious diffs.
 
-### Optional: managed Postgres
+## Database
 
-`prisma/schema.prisma` contains the production data model (User, Appointment,
-Order, OrderItem, Shipment, Payment, QCImage, Review, Shop, Shopper, Address).
+**Live: Supabase (Postgres).** The database is now real and browsable — open the
+Supabase dashboard → **Table Editor** to see every row your users create.
 
-Because `prisma generate` could not run in the original build environment
-(the Prisma CLI could not resolve its generator binary), the app currently
-ships a small in-memory data layer at `src/lib/db.ts` that mirrors the same
-models. Its API surface is deliberately Prisma-like:
+| | |
+|---|---|
+| Project ref | `yizbmbwofgpgyqvbupyd` |
+| Region | Mumbai / Singapore |
+| Plan | Free tier |
+| Schema | `supabase/schema.sql` |
+| Client | `src/lib/db.ts` |
 
-```ts
-db.user.findUnique({ email })
-db.appointment.create({ data: { ... } })
+### Environment variables
+
+| Name | Exposed to browser | Notes |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Yes — safe | The REST endpoint |
+| `SUPABASE_SERVICE_ROLE_KEY` | **No — server only** | Bypasses row-level security. Never add a `NEXT_PUBLIC_` prefix, never commit it. |
+
+`.env` is gitignored. `.env.example` holds placeholders only.
+
+### The 11 tables
+
+`users` · `shoppers` · `shops` · `appointments` · `orders` · `order_items` ·
+`shipments` · `payments` · `qc_images` · `reviews` · `addresses`
+
+The production data model is also captured in `prisma/schema.prisma`.
+
+### Creating or resetting the database
+
+```bash
+# Supabase dashboard → SQL Editor → New query, then paste and run:
+#   supabase/schema.sql
 ```
 
-To move to a real database:
+This creates all tables, indexes, the `updated_at` trigger, and seeds the demo
+accounts, shops, appointments, orders and reviews. Safe to re-run.
 
-1. Create a free Postgres database (Neon, Supabase or Railway).
-2. Set `DATABASE_URL` in your environment.
-3. Run `npx prisma generate` in an environment where the Prisma CLI works.
-4. Point `src/lib/db.ts` at the generated client, or replace its
-   `findUnique` / `create` implementations with `prisma.*` calls. No call
-   sites need to change.
+### CRUD API
 
-### Known limitation of the current live deployment
+`src/lib/db.ts` exposes a Prisma-shaped surface, so no page or component knows
+which backend is in use:
 
-The live site uses the in-memory data layer. **Accounts, appointments and
-orders created on the live site do not persist** — they reset when a Vercel
-serverless function restarts. The seeded demo accounts in `src/lib/db.ts` are
-re-created on each cold start, so those always work. This is expected until a
-database is attached.
+| Method | SQL equivalent |
+|---|---|
+| `db.user.findUnique({ id })` | `SELECT ... WHERE id = ? LIMIT 1` |
+| `db.user.findMany({ role: "CUSTOMER" })` | `SELECT ... WHERE role = 'CUSTOMER'` |
+| `db.user.create({ data })` | `INSERT` |
+| `db.user.update({ id }, { status })` | `UPDATE ... WHERE id = ?` |
+
+Column names are converted between camelCase in TypeScript and snake_case in
+Postgres automatically, so the rest of the codebase stays unchanged.
+
+### Managing the data
+
+- **Supabase Table Editor** — click any table to view, edit, add or delete rows
+  in the browser. This is the easiest way to fix a typo or add a shop.
+- **Supabase SQL Editor** — run ad-hoc queries, joins and reports.
+- **The admin panel** (`/admin`) — shoppers, assignments, appeals, order status,
+  payments and review moderation from within the app.
+- **`scripts/check-db.js`** — row count per table, to confirm connectivity:
+
+```bash
+node --env-file=.env scripts/check-db.js
+```
+
+### Database utility scripts
+
+| Script | Purpose |
+|---|---|
+| `scripts/smoke.test.js` | End-to-end role test (`npm test`) |
+| `scripts/check-db.js` | Verify every table is reachable, print row counts |
+| `scripts/patch-db.js` | One-off patch: links orders to appointments, seeds shipments and addresses |
+
+### UUID validation
+
+Postgres rejects a non-uuid value for a `uuid` column with a hard error instead
+of returning zero rows. Every route therefore validates ids through
+`src/lib/validate.ts` and answers **404** for malformed input rather than
+letting the query throw a 500. The smoke test asserts this behaviour
+explicitly.
+
+### Known limitation
+
+The live site historically used an in-memory layer. That is now replaced by
+Supabase, so accounts, appointments and orders **persist** across restarts and
+deploys. Verify `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are
+set in the Vercel project, otherwise the app throws a clear
+"Supabase is not configured" error instead of silently losing data.
 
 ---
 

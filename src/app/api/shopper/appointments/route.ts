@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/auth"
 import { db } from "@/lib/db"
+import { isUuid } from "@/lib/validate"
 import type { AppointmentStatus } from "@/lib/db"
 
 const APPOINTMENT_STATUSES: AppointmentStatus[] = [
@@ -25,6 +26,9 @@ export async function PATCH(req: NextRequest) {
     const { id, status } = await req.json()
     if (!id || !status) {
       return NextResponse.json({ error: "Appointment id and status required." }, { status: 400 })
+    }
+    if (!isUuid(id)) {
+      return NextResponse.json({ error: "Appointment not found." }, { status: 404 })
     }
     if (!APPOINTMENT_STATUSES.includes(status)) {
       return NextResponse.json({ error: "Unknown status." }, { status: 400 })

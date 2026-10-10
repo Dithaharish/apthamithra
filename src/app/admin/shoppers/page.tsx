@@ -1,4 +1,7 @@
 import { Badge } from "@/components/ui/badge"
+export const instant = false
+
+
 import { Star, MapPin, Languages, CheckCircle, Calendar, Package } from "lucide-react"
 import { db } from "@/lib/db"
 

@@ -1,4 +1,7 @@
 import { Badge } from "@/components/ui/badge"
+export const instant = false
+
+
 import { ShoppingBag, Calendar, MapPin, Languages, Mail } from "lucide-react"
 import { db } from "@/lib/db"
 

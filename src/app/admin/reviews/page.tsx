@@ -1,4 +1,7 @@
 import { Badge } from "@/components/ui/badge"
+export const instant = false
+
+
 import { ThumbsUp, Star } from "lucide-react"
 import { db } from "@/lib/db"
 import { ModerateReview } from "@/components/moderate-review"

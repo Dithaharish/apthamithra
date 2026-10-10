@@ -280,10 +280,7 @@ NextAuth 4 (credentials provider), Prisma schema for the production model.
 ### Outstanding
 | Item | Status |
 |---|---|
-| GitHub repository | **Live** — https://github.com/Dithaharish/apthamithra |
-| Vercel deployment | **Live** — https://apthamithra.vercel.app |
-| Automatic deploys | Push to `main` redeploys production |
-| Persistent database | In-memory layer; needs hosted Postgres |
+| Supabase env vars on Vercel | Add `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`, then redeploy — until then the live site cannot read the database |
 | Payment gateways | Awaiting API keys |
 | Courier APIs | Awaiting API keys |
 | WhatsApp / email notifications | Awaiting API keys |
@@ -308,13 +305,14 @@ client — no call sites need to change.
 
 ## 9. Immediate next steps
 
-1. **Confirm sign-in works on the live site.** Sign in at
+1. **Add the Supabase env vars to Vercel and redeploy.**
+   `NEXT_PUBLIC_SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` work locally but
+   are not yet set on Vercel, so the live site cannot reach the database until
+   they are added.
+2. **Confirm sign-in works on the live site.** Sign in at
    https://apthamithra.vercel.app/login with `shopper1@apthamithra.com` /
    `apthamithra123`. If it fails, check `NEXTAUTH_URL` has no trailing slash
    and that a redeploy happened after adding it.
-2. **Attach a real database** (Neon / Supabase / Railway free Postgres). The
-   live site currently uses an in-memory layer, so accounts and orders do not
-   survive a serverless restart. This is the main blocker to real use.
 3. **Collect feedback** from 5–10 NRIs before building payments or courier
    integrations.
 4. **Wire payments** — Stripe for international, Razorpay for India.

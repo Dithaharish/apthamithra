@@ -1,4 +1,7 @@
 
+export const instant = false
+
+
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Phone, Video, MessageSquare, User as UserIcon, Star } from "lucide-react"
 import { db } from "@/lib/db"

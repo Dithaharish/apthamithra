@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/auth"
 import { db } from "@/lib/db"
+import { isUuid } from "@/lib/validate"
 
 const VALID = new Set(["approved", "rejected", "pending"])
 
@@ -18,6 +19,9 @@ export async function PATCH(req: NextRequest) {
     const { id, status } = await req.json()
     if (!id || !status) {
       return NextResponse.json({ error: "Review id and status required." }, { status: 400 })
+    }
+    if (!isUuid(id)) {
+      return NextResponse.json({ error: "Review not found." }, { status: 404 })
     }
     if (!VALID.has(status)) {
       return NextResponse.json({ error: "Unknown status." }, { status: 400 })

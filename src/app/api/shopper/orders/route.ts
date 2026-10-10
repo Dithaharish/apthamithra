@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/auth"
 import { db, ORDER_FLOW } from "@/lib/db"
+import { isUuid } from "@/lib/validate"
 import type { OrderStatus } from "@/lib/db"
 
 const SERVICE_RATE = 0.12
@@ -22,6 +23,9 @@ export async function PATCH(req: NextRequest) {
     const { id, status } = await req.json()
     if (!id || !status) {
       return NextResponse.json({ error: "Order id and status required." }, { status: 400 })
+    }
+    if (!isUuid(id)) {
+      return NextResponse.json({ error: "Order not found." }, { status: 404 })
     }
     if (!VALID.has(status)) {
       return NextResponse.json({ error: "Unknown status." }, { status: 400 })
@@ -60,6 +64,12 @@ export async function POST(req: NextRequest) {
 
     if (!customerId) {
       return NextResponse.json({ error: "Customer required." }, { status: 400 })
+    }
+    if (!isUuid(customerId)) {
+      return NextResponse.json({ error: "Unknown customer." }, { status: 400 })
+    }
+    if (appointmentId && !isUuid(appointmentId)) {
+      return NextResponse.json({ error: "Unknown appointment." }, { status: 400 })
     }
     if (!destination || !String(destination).trim()) {
       return NextResponse.json({ error: "Destination required." }, { status: 400 })

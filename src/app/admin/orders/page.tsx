@@ -1,4 +1,7 @@
 import Link from "next/link"
+export const instant = false
+
+
 import { Badge } from "@/components/ui/badge"
 import { MapPin, Truck, CheckCircle, Clock, X } from "lucide-react"
 import { db, ORDER_FLOW, ORDER_STATUS_LABEL } from "@/lib/db"

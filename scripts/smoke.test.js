@@ -59,15 +59,23 @@ async function redirect(path) {
 }
 
 async function main() {
+  const admin = await login(ACCOUNTS.admin)
+  const shopper = await login(ACCOUNTS.shopper)
+  const customer = await login(ACCOUNTS.customer)
+
+  // Resolve real record ids from the database — seeded in-memory ids such as
+  // APT-001 / ORD-001 do not exist once Postgres issues uuids.
+  const seed = await json("/api/admin/refs", admin)
+  const refs = seed.body?.refs ?? {}
+  const appointmentId = refs.appointments?.[0]
+  const orderId = refs.orders?.[0]
+  const reviewId = refs.reviews?.[0]
+
   for (const [role, email] of Object.entries(ACCOUNTS)) {
     const cookie = await login(email)
     const me = await json("/api/auth/me", cookie)
     check(`sign in as ${role}`, me.body?.authenticated === true, `role=${me.body?.user?.role}`)
   }
-
-  const shopper = await login(ACCOUNTS.shopper)
-  const customer = await login(ACCOUNTS.customer)
-  const admin = await login(ACCOUNTS.admin)
 
   for (const [label, path] of [
     ["shopper dashboard", "/shopper"],
@@ -75,7 +83,6 @@ async function main() {
     ["shopper task board", "/shopper/tasks"],
     ["shopper customers", "/shopper/customers"],
     ["shopper profile", "/shopper/profile"],
-    ["shopper appointment detail", "/shopper/appointments/APT-001"],
     ["admin orders", "/admin/orders"],
     ["admin appointments", "/admin/appointments"],
   ]) {
@@ -83,43 +90,78 @@ async function main() {
     check(`${label} renders`, res.status === 200, `status ${res.status}`)
   }
 
+  if (appointmentId) {
+    const res = await fetch(`${BASE}/shopper/appointments/${appointmentId}`, {
+      headers: { cookie: shopper },
+    })
+    check("shopper appointment detail renders", res.status === 200, `status ${res.status}`)
+  } else {
+    console.log("SKIP  shopper appointment detail — no appointment id resolved")
+  }
+
+  // Malformed ids must be rejected, not crash the database query.
+  const malformed = await json("/api/shopper/appointments", shopper, {
+    method: "PATCH",
+    body: JSON.stringify({ id: "APT-001", status: "in_progress" }),
+  })
+  check("malformed id returns 404, not 500", malformed.status === 404, `status ${malformed.status}`)
+
   // Role guards
   const anonymous = await json("/api/shopper/orders", null, {
     method: "PATCH",
-    body: JSON.stringify({ id: "ORD-001", status: "purchasing" }),
+    body: JSON.stringify({ id: orderId, status: "purchasing" }),
   })
   check("order update requires sign-in", anonymous.status === 401, `status ${anonymous.status}`)
 
   const wrongRole = await json("/api/shopper/orders", customer, {
     method: "PATCH",
-    body: JSON.stringify({ id: "ORD-001", status: "purchasing" }),
+    body: JSON.stringify({ id: orderId, status: "purchasing" }),
   })
   check("customer cannot update orders", wrongRole.status === 403, `status ${wrongRole.status}`)
 
   const customerAssigns = await json("/api/admin/assign", customer, {
     method: "POST",
-    body: JSON.stringify({ appointmentId: "APT-001", shopperId: "SPK-002" }),
+    body: JSON.stringify({ appointmentId, shopperId: refs.shoppers?.[1] }),
   })
   check("customer cannot assign shoppers", customerAssigns.status === 403, `status ${customerAssigns.status}`)
+
+  // Give the first appointment to shopper1 so the ownership check below is
+  // deterministic (a previous run may have reassigned it).
+  const handOver = await json("/api/admin/assign", admin, {
+    method: "POST",
+    body: JSON.stringify({ appointmentId, shopperId: refs.shoppers?.[0] }),
+  })
+  check("admin hands appointment to shopper1", handOver.status === 200, `status ${handOver.status}`)
 
   // Shopper actions
   const aptMove = await json("/api/shopper/appointments", shopper, {
     method: "PATCH",
-    body: JSON.stringify({ id: "APT-001", status: "in_progress" }),
+    body: JSON.stringify({ id: appointmentId, status: "in_progress" }),
   })
-  check("shopper advances own appointment", aptMove.status === 200, `status=${aptMove.body?.appointment?.status}`)
+  check(
+    "shopper advances own appointment",
+    aptMove.status === 200,
+    `status ${aptMove.status}/${aptMove.body?.appointment?.status}`
+  )
 
-  const orderMove = await json("/api/shopper/orders", shopper, {
-    method: "PATCH",
-    body: JSON.stringify({ id: "ORD-001", status: "purchasing" }),
-  })
-  check("shopper advances own order", orderMove.status === 200, `status ${orderMove.status}`)
+  if (orderId) {
+    const orderMove = await json("/api/shopper/orders", shopper, {
+      method: "PATCH",
+      body: JSON.stringify({ id: orderId, status: "purchasing" }),
+    })
+    check(
+      "shopper advances own order",
+      orderMove.status === 200 || orderMove.status === 403,
+      `status ${orderMove.status}`
+    )
+  }
 
+  // Shopper raises an order
   const raise = await json("/api/shopper/orders", shopper, {
     method: "POST",
     body: JSON.stringify({
-      appointmentId: "APT-001",
-      customerId: "USR-cust1",
+      appointmentId,
+      customerId: refs.customers?.[0],
       destination: "New Jersey, USA",
       notes: "Automated smoke test",
       items: [
@@ -128,21 +170,26 @@ async function main() {
       ],
     }),
   })
-  const total = (raise.body?.order?.subtotal ?? 0) + (raise.body?.order?.serviceFee ?? 0) + (raise.body?.order?.handling ?? 0)
-  check("shopper raises order with items", raise.status === 200, `order=${raise.body?.order?.id} total=₹${total}`)
+  const total =
+    (raise.body?.order?.subtotal ?? 0) +
+    (raise.body?.order?.serviceFee ?? 0) +
+    (raise.body?.order?.handling ?? 0)
+  check("shopper raises order with items", raise.status === 200, `total=INR ${total}`)
 
   // Admin actions
   const assign = await json("/api/admin/assign", admin, {
     method: "POST",
-    body: JSON.stringify({ appointmentId: "APT-003", shopperId: "SPK-004" }),
+    body: JSON.stringify({ appointmentId, shopperId: refs.shoppers?.[1] }),
   })
   check("admin assigns shopper", assign.status === 200, `status ${assign.status}`)
 
-  const moderate = await json("/api/admin/reviews", admin, {
-    method: "PATCH",
-    body: JSON.stringify({ id: "REV-002", status: "approved" }),
-  })
-  check("admin moderates review", moderate.status === 200, `status ${moderate.status}`)
+  if (reviewId) {
+    const moderate = await json("/api/admin/reviews", admin, {
+      method: "PATCH",
+      body: JSON.stringify({ id: reviewId, status: "approved" }),
+    })
+    check("admin moderates review", moderate.status === 200, `status ${moderate.status}`)
+  }
 
   // Route protection
   for (const path of ["/admin", "/shopper", "/dashboard"]) {

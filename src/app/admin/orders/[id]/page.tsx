@@ -1,4 +1,7 @@
 import { Badge } from "@/components/ui/badge"
+export const instant = false
+
+
 import { Store, MapPin, DollarSign, Package, Camera, Truck } from "lucide-react"
 import { db, ORDER_FLOW, ORDER_STATUS_LABEL } from "@/lib/db"
 import { AdminOrderStatus } from "@/components/admin-order-status"

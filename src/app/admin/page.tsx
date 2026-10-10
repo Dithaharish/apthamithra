@@ -1,4 +1,7 @@
 
+export const instant = false
+
+
 import Link from "next/link"
 import { ShoppingBag, Users, Calendar, Star, DollarSign, Clock } from "lucide-react"
 import { db, ORDER_STATUS_LABEL } from "@/lib/db"

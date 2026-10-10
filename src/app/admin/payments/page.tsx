@@ -1,4 +1,7 @@
 import { CreditCard, DollarSign, Clock, X, CheckCircle } from "lucide-react"
+export const instant = false
+
+
 import { db, ORDER_STATUS_LABEL } from "@/lib/db"
 
 const methodLabel = (m: string) => m
