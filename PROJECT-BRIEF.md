@@ -10,8 +10,14 @@ and ships internationally or delivers locally within India.
 This document captures the refined business concept, website structure, user
 journey, feature roadmap and current implementation status.
 
-For technical setup see `README.md`. For editing text, prices, sections and
-pages yourself, see `CUSTOMIZATION.md`.
+| | |
+|---|---|
+| **Live site** | https://apthamithra.vercel.app |
+| **Repository** | https://github.com/Dithaharish/apthamithra |
+| **Status** | Deployed and publicly accessible |
+
+For technical setup and deployment see `README.md`. For editing text, prices,
+sections and pages yourself, see `CUSTOMIZATION.md`.
 
 ---
 
@@ -266,15 +272,17 @@ NextAuth 4 (credentials provider), Prisma schema for the production model.
 - Shopper can raise a priced order, advance status, and toggle availability
 - Admin can assign shoppers and moderate reviews
 - Server-side authorisation on every shopper and admin endpoint
-- 29+ routes, 22/22 end-to-end checks passing (`npm test`)
+- 44 routes, 22/22 end-to-end checks passing (`npm test`)
 - Lint clean, TypeScript clean, production build passing
-- Deployment config: `vercel.json`, `.env`, `README.md`, `CUSTOMIZATION.md`
+- **Git repository created and pushed** (`cec846c`, 101 files)
+- **Deployed live on Vercel** — verified HTTP 200 with correct branding
 
 ### Outstanding
 | Item | Status |
 |---|---|
-| GitHub push | Blocked — Git is not installed on the build machine |
-| Vercel deployment | Depends on repository existing |
+| GitHub repository | **Live** — https://github.com/Dithaharish/apthamithra |
+| Vercel deployment | **Live** — https://apthamithra.vercel.app |
+| Automatic deploys | Push to `main` redeploys production |
 | Persistent database | In-memory layer; needs hosted Postgres |
 | Payment gateways | Awaiting API keys |
 | Courier APIs | Awaiting API keys |
@@ -300,12 +308,21 @@ client — no call sites need to change.
 
 ## 9. Immediate next steps
 
-1. **Install Git**, initialise the repository and push to GitHub
-2. **Connect Vercel** to the repository for automatic deployment on push
-3. **Provision Postgres** (Neon, Supabase or Railway free tier) and swap the
-   data layer
-4. **Wire payments** — Stripe for international, Razorpay for India
-5. **Wire courier APIs** for real rates, labels and tracking
-6. **Enable notifications** — transactional email plus WhatsApp
-7. **Replace placeholder content** with real copy, photography and shopper profiles
-8. **Add automated tests** for auth, booking and order lifecycle
+1. **Confirm sign-in works on the live site.** Sign in at
+   https://apthamithra.vercel.app/login with `shopper1@apthamithra.com` /
+   `apthamithra123`. If it fails, check `NEXTAUTH_URL` has no trailing slash
+   and that a redeploy happened after adding it.
+2. **Attach a real database** (Neon / Supabase / Railway free Postgres). The
+   live site currently uses an in-memory layer, so accounts and orders do not
+   survive a serverless restart. This is the main blocker to real use.
+3. **Collect feedback** from 5–10 NRIs before building payments or courier
+   integrations.
+4. **Wire payments** — Stripe for international, Razorpay for India.
+5. **Wire courier APIs** for real rates, labels and tracking.
+6. **Enable notifications** — transactional email plus WhatsApp.
+7. **Replace placeholder content** with real copy, photography and shopper
+   profiles.
+8. **Expand automated tests** for auth, booking and order lifecycle.
+
+Deployment details, environment variables and the Vercel pitfalls encountered
+during setup are documented in `README.md` under "Deployment".

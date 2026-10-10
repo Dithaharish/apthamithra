@@ -10,6 +10,11 @@ customs and ships worldwide with full tracking.
 Built with **Next.js 16 (App Router) + Tailwind CSS v4** and free-tier
 deployment in mind.
 
+| | |
+|---|---|
+| **Live site** | https://apthamithra.vercel.app |
+| **Repository** | https://github.com/Dithaharish/apthamithra |
+
 ---
 
 ## Documentation
@@ -162,22 +167,81 @@ visitors to sign-in. It prints a PASS/FAIL line per check.
 
 ---
 
-## Deploying for free
+## Deployment
 
-### Frontend + API on Vercel (recommended)
+### Current deployment — done
 
-1. Push this repository to GitHub.
-2. Go to https://vercel.com/new and import the repository.
-3. Add environment variables (copy from `.env.example`).
-   Generate a fresh `NEXTAUTH_SECRET` — do not reuse the local one.
-4. Set `NEXTAUTH_URL` to your deployed `https://<project>.vercel.app`.
-5. Deploy. Every push to `main` gets an automatic preview + production
-   deployment.
+| | |
+|---|---|
+| **Live URL** | https://apthamithra.vercel.app |
+| **Repository** | https://github.com/Dithaharish/apthamithra |
+| **Branch** | `main` |
+| **Initial commit** | `cec846c` — 101 files |
+| **Platform** | Vercel (Hobby plan) |
+| **Deploys** | Automatic on every push to `main` |
 
-Free tier includes HTTPS, a `*.vercel.app` domain, serverless functions and
-Git-based CI/CD.
+Verified: the live site returns HTTP 200 with the Apthamithra brand and
+"Rooted in trust. Always by your side" tagline rendering.
 
-### Optional: managed Postgres later
+### Environment variables set on Vercel
+
+| Name | Value | Notes |
+|---|---|---|
+| `NEXTAUTH_SECRET` | 256-bit generated hex | JWT signing. Never commit this. |
+| `NEXTAUTH_URL` | `https://apthamithra.vercel.app` | **No trailing slash.** Required or login breaks in production. |
+
+To generate a new secret:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+### Redeploying after changing an env variable
+
+Environment variables are baked into the build. Changing one has **no effect**
+until you redeploy:
+
+**Deployments tab → three dots (•••) on the latest deployment → Redeploy**
+
+This is the single most common reason sign-in appears broken on a live
+deployment even though every setting looks correct.
+
+### Vercel pitfalls hit during setup
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| No "Add variable" button where expected | Environment variables were being viewed under **Team Settings** instead of the project | Use the project's own **Settings → Environment Variables**, or the Add button above the variable table |
+| "+ Create New" menu shows Project / Domain / Integration | That menu creates resources, not variables | Ignore it; find **Add** / **Add New** near the variable list |
+| Login redirect loop in production | `NEXTAUTH_URL` had a trailing slash, or was missing | Set exactly `https://<domain>.vercel.app` and redeploy |
+| `ERESOLVE` peer-dependency failure in the build log | `next-auth@4` and `bcryptjs` peer conflict | `vercel.json` sets `installCommand: npm install --legacy-peer-deps` — check it is still present |
+
+### Vercel free tier
+
+HTTPS, a `*.vercel.app` subdomain, serverless functions and Git-based CI/CD
+are all included at no cost. Every push to `main` triggers a production build;
+push to any other branch creates a preview deployment.
+
+### Local Git setup notes (Windows)
+
+Git 2.56 installed via the standard installer is located at
+`C:\Program Files\Git\cmd\git.exe`. If a shell started before the install does
+not recognise `git`, use the full path or restart the terminal:
+
+```powershell
+& "C:\Program Files\Git\cmd\git.exe" --version
+```
+
+Identity used for commits:
+
+```
+user.name  = Enugala Harikrishna Reddy
+user.email = Dithaharish@users.noreply.github.com
+```
+
+`.gitattributes` normalises line endings to LF so Windows checkouts do not
+create spurious diffs.
+
+### Optional: managed Postgres
 
 `prisma/schema.prisma` contains the production data model (User, Appointment,
 Order, OrderItem, Shipment, Payment, QCImage, Review, Shop, Shopper, Address).
@@ -200,6 +264,14 @@ To move to a real database:
 4. Point `src/lib/db.ts` at the generated client, or replace its
    `findUnique` / `create` implementations with `prisma.*` calls. No call
    sites need to change.
+
+### Known limitation of the current live deployment
+
+The live site uses the in-memory data layer. **Accounts, appointments and
+orders created on the live site do not persist** — they reset when a Vercel
+serverless function restarts. The seeded demo accounts in `src/lib/db.ts` are
+re-created on each cold start, so those always work. This is expected until a
+database is attached.
 
 ---
 
