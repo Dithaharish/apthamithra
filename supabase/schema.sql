@@ -305,3 +305,16 @@ select c.id, 'Home', '123 Demo Street', split_part(c.country, ',', 1), '00000', 
 from users c
 where c.role = 'CUSTOMER'
   and not exists (select 1 from addresses a where a.customer_id = c.id);
+
+-- ----------------------------------------------------------------------------
+-- Account security: email verification and password reset
+-- Safe to re-run. Applied to the live database when schema.sql is executed.
+-- ----------------------------------------------------------------------------
+
+alter table users add column if not exists email_verified    boolean not null default false;
+alter table users add column if not exists verify_token      text;
+alter table users add column if not exists reset_token       text;
+alter table users add column if not exists reset_expires_at  timestamptz;
+
+create index if not exists idx_users_reset_token  on users(reset_token)  where reset_token is not null;
+create index if not exists idx_users_verify_token on users(verify_token) where verify_token is not null;

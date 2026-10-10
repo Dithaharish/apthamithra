@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Data layer backed by Supabase (Postgres).
  *
@@ -46,6 +47,10 @@ export interface User {
   language: string | null
   role: Role
   active: boolean
+  emailVerified: boolean
+  verifyToken: string | null
+  resetToken: string | null
+  resetExpiresAt: Date | null
   createdAt: Date
 }
 
@@ -220,7 +225,7 @@ const NUMERIC_FIELDS = new Set([
   "helpful",
 ])
 
-const DATE_FIELDS = new Set(["createdAt", "updatedAt"])
+const DATE_FIELDS = new Set(["createdAt", "updatedAt", "resetExpiresAt"])
 
 function toSnake(key: string): string {
   return key.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`)
@@ -326,6 +331,29 @@ async function deleteRow(table: string, id: string): Promise<boolean> {
   return (count ?? 0) > 0
 }
 
+/**
+ * The account-security columns are added by a migration the operator runs in
+ * the Supabase SQL Editor. Until then, writing them would fail every insert.
+ * Probe once and cache the answer so the app works before and after.
+ */
+let securityColumnsReady: boolean | null = null
+
+async function hasSecurityColumns(): Promise<boolean> {
+  if (securityColumnsReady !== null) return securityColumnsReady
+  try {
+    const { error } = await getClient().from("users").select("verify_token").limit(1)
+    securityColumnsReady = !error
+  } catch {
+    securityColumnsReady = false
+  }
+  return securityColumnsReady
+}
+
+/** Call after the migration has been applied to clear the cached probe. */
+export function resetSchemaProbe(): void {
+  securityColumnsReady = null
+}
+
 /* ------------------------------------------------------------------ */
 /* Order lifecycle                                                     */
 /* ------------------------------------------------------------------ */
@@ -359,6 +387,16 @@ export function nextOrderStatus(current: OrderStatus): OrderStatus | null {
   return ORDER_FLOW[index + 1]
 }
 
+/**
+ * URL-safe secret used for password-reset and email-verification links.
+ * 32 bytes of entropy, hex encoded.
+ */
+export function randomToken(): string {
+  return Array.from(crypto.getRandomValues(new Uint8Array(32)))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("")
+}
+
 /* ------------------------------------------------------------------ */
 /* Data access                                                         */
 /* ------------------------------------------------------------------ */
@@ -366,10 +404,40 @@ export function nextOrderStatus(current: OrderStatus): OrderStatus | null {
 export const db = {
   user: {
     findUnique: (where: { email?: string; id?: string }) => findUnique<User>("users", where),
-    findMany: (where: Record<string, unknown> = {}) => findMany<User>("users", where),
-    create: ({ data }: { data: Partial<User> }) => insertRow<User>("users", data),
-    update: (where: { id: string }, data: Partial<User>) =>
-      updateRow<User>("users", where.id, data),
+    /**
+     * Looks a user up by a reset or verification token. Returns null when the
+     * token columns have not been migrated yet.
+     */
+    findByToken: async (column: "resetToken" | "verifyToken", token: string) => {
+      if (!(await hasSecurityColumns())) return null
+      return findUnique<User>("users", { [column]: token } as Record<string, unknown>)
+    },
+    findMany: (where: Record<string, any> = {}) => findMany<User>("users", where),
+    create: async ({ data }: { data: Partial<User> }) => {
+      // Only write a verification token once the column exists.
+      const payload =
+        (await hasSecurityColumns())
+          ? { ...data, verifyToken: data.verifyToken ?? randomToken(), emailVerified: false }
+          : data
+      return insertRow<User>("users", payload)
+    },
+    update: async (where: { id: string }, data: Partial<User>): Promise<User | null> => {
+      // Token columns are dropped from the payload until they are migrated.
+      const hasTokens = Object.keys(data).some(
+        (k) => k === "resetToken" || k === "resetExpiresAt" || k === "verifyToken" || k === "emailVerified"
+      )
+      if (hasTokens && !(await hasSecurityColumns())) {
+        // Strip the not-yet-migrated columns rather than failing the write.
+        const { resetToken, resetExpiresAt, verifyToken, emailVerified, ...rest } = data
+        void resetToken
+        void resetExpiresAt
+        void verifyToken
+        void emailVerified
+        if (Object.keys(rest).length === 0) return findUnique<User>("users", where)
+        return updateRow<User>("users", where.id, rest)
+      }
+      return updateRow<User>("users", where.id, data)
+    },
   },
 
   shopper: {

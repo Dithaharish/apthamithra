@@ -3,6 +3,8 @@ import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { AppointmentBookingForm } from "@/components/appointment-booking-form"
 
+export const instant = false
+
 export default function DashboardBookPage() {
   return (
     <div className="min-h-screen flex flex-col">

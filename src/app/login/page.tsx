@@ -16,7 +16,10 @@ export default function LoginPage() {
           </div>
           <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-sm">
             <LoginForm />
-            <div className="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-400">
+            <div className="mt-4 text-right">
+              <Link href="/forgot-password" className="text-sm text-amber-600 hover:underline">Forgot your password?</Link>
+            </div>
+            <div className="mt-4 text-center text-sm text-zinc-600 dark:text-zinc-400">
               Don&apos;t have an account? <Link href="/register" className="text-amber-600 hover:underline font-medium">Create one</Link>
             </div>
           </div>
