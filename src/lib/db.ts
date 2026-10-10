@@ -450,8 +450,10 @@ export const db = {
   },
 
   shop: {
-    findMany: (where: Record<string, unknown> = {}) => findMany<Shop>("shops", where),
+    findMany: (where: Record<string, any> = {}) => findMany<Shop>("shops", where),
     create: ({ data }: { data: Partial<Shop> }) => insertRow<Shop>("shops", data),
+    update: (where: { id: string }, data: Partial<Shop>) =>
+      updateRow<Shop>("shops", where.id, data),
   },
 
   appointment: {

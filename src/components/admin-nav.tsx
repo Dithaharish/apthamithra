@@ -2,7 +2,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Users, Calendar, ShoppingBag, Star, MessageSquare, Settings, DollarSign, ClipboardList } from "lucide-react"
+import { LayoutDashboard, Users, Calendar, ShoppingBag, Star, MessageSquare, Settings, DollarSign, ClipboardList, Package } from "lucide-react"
 
 const items = [
   { href: "/admin", label: "Overview", icon: LayoutDashboard },
@@ -10,6 +10,7 @@ const items = [
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { href: "/admin/customers", label: "Customers", icon: Users },
   { href: "/admin/shoppers", label: "Shoppers", icon: Star },
+  { href: "/admin/shops", label: "Shops", icon: Package },
   { href: "/admin/payments", label: "Payments", icon: DollarSign },
   { href: "/admin/reviews", label: "Reviews", icon: MessageSquare },
   { href: "/shopper", label: "Shopper workspace", icon: ClipboardList },

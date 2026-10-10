@@ -184,11 +184,97 @@ async function main() {
   check("admin assigns shopper", assign.status === 200, `status ${assign.status}`)
 
   if (reviewId) {
-    const moderate = await json("/api/admin/reviews", admin, {
+  const moderate = await json("/api/admin/reviews", admin, {
+    method: "PATCH",
+    body: JSON.stringify({ id: reviewId, status: "approved" }),
+  })
+  check("admin moderates review", moderate.status === 200, `status ${moderate.status}`)
+
+  // Admin CRUD for shoppers and shops
+  const newShopper = await json("/api/admin/shoppers", admin, {
+    method: "POST",
+    body: JSON.stringify({
+      name: "Smoke Test Shopper",
+      city: "Testpur",
+      languages: ["English", "Hindi"],
+      bio: "Created by the smoke test",
+    }),
+  })
+  check("admin creates shopper", newShopper.status === 200, `id=${newShopper.body?.shopper?.id}`)
+
+  const shopperId = newShopper.body?.shopper?.id
+  if (shopperId) {
+    const edited = await json("/api/admin/shoppers", admin, {
       method: "PATCH",
-      body: JSON.stringify({ id: reviewId, status: "approved" }),
+      body: JSON.stringify({ id: shopperId, available: false, verified: true }),
     })
-    check("admin moderates review", moderate.status === 200, `status ${moderate.status}`)
+    check("admin edits shopper", edited.status === 200, `available=${edited.body?.shopper?.available}`)
+
+    const missing = await json("/api/admin/shoppers", admin, {
+      method: "PATCH",
+      body: JSON.stringify({ id: shopperId, languages: [] }),
+    })
+    check("shopper edit rejects empty languages", missing.status === 400, `status ${missing.status}`)
+  }
+
+  const shopperAsCustomer = await json("/api/admin/shoppers", customer, {
+    method: "POST",
+    body: JSON.stringify({ name: "Nope", city: "Nowhere", languages: ["English"] }),
+  })
+  check("customer cannot create shoppers", shopperAsCustomer.status === 403, `status ${shopperAsCustomer.status}`)
+
+  const newShop = await json("/api/admin/shops", admin, {
+    method: "POST",
+    body: JSON.stringify({ name: "Smoke Test Shop", city: "Testpur", category: ["Sweets"], verified: true }),
+  })
+  check("admin creates shop", newShop.status === 200, `id=${newShop.body?.shop?.id}`)
+
+  const shopId = newShop.body?.shop?.id
+  if (shopId) {
+    const edited = await json("/api/admin/shops", admin, {
+      method: "PATCH",
+      body: JSON.stringify({ id: shopId, verified: false }),
+    })
+    check("admin edits shop", edited.status === 200, `verified=${edited.body?.shop?.verified}`)
+  }
+
+  const badId = await json("/api/admin/shoppers", admin, {
+    method: "PATCH",
+    body: JSON.stringify({ id: "SPK-001", available: true }),
+  })
+  check("admin edit rejects malformed id", badId.status === 400, `status ${badId.status}`)
+
+  // Password reset flow
+  const forgotUnknown = await json("/api/auth/forgot-password", null, {
+    method: "POST",
+    body: JSON.stringify({ email: "does-not-exist@example.com" }),
+  })
+  check("forgot-password is not an oracle", forgotUnknown.status === 200, `status ${forgotUnknown.status}`)
+
+  const resetBadToken = await json("/api/auth/reset-password", null, {
+    method: "POST",
+    body: JSON.stringify({ token: "not-a-real-token", password: "newpassword123" }),
+  })
+  check("reset rejects unknown token", resetBadToken.status === 400, `status ${resetBadToken.status}`)
+
+  const resetShort = await json("/api/auth/reset-password", null, {
+    method: "POST",
+    body: JSON.stringify({ token: "not-a-real-token", password: "short" }),
+  })
+  check("reset rejects short password", resetShort.status === 400, `status ${resetShort.status}`)
+
+  const verifyBad = await json("/api/auth/verify-email", null, {
+    method: "POST",
+    body: JSON.stringify({ token: "not-a-real-token" }),
+  })
+  check("verify rejects unknown token", verifyBad.status === 400, `status ${verifyBad.status}`)
+
+  // Track-order lookup
+  const trackEmpty = await json("/api/track")
+  check("track requires a query", trackEmpty.status === 400, `status ${trackEmpty.status}`)
+
+  const trackMissing = await json("/api/track?q=NO-SUCH-REFERENCE")
+  check("track reports not found", trackMissing.status === 404, `status ${trackMissing.status}`)
   }
 
   // Route protection
