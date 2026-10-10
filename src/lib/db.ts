@@ -376,24 +376,36 @@ async function deleteRow(table: string, id: string): Promise<boolean> {
 /**
  * The account-security columns are added by a migration the operator runs in
  * the Supabase SQL Editor. Until then, writing them would fail every insert.
- * Probe once and cache the answer so the app works before and after.
+ *
+ * The probe result is cached, but only briefly when the answer is "not there
+ * yet" — a long-running server must pick the columns up shortly after the
+ * migration is applied without needing a restart.
  */
 let securityColumnsReady: boolean | null = null
+let securityProbedAt = 0
+
+/** How long a negative answer is trusted before re-probing. */
+const NEGATIVE_CACHE_MS = 30_000
 
 async function hasSecurityColumns(): Promise<boolean> {
-  if (securityColumnsReady !== null) return securityColumnsReady
+  const cacheAge = Date.now() - securityProbedAt
+  const cacheFresh = securityProbedAt > 0 && (!securityColumnsReady ? cacheAge < NEGATIVE_CACHE_MS : true)
+  if (securityColumnsReady !== null && cacheFresh) return securityColumnsReady
+
   try {
     const { error } = await getClient().from("users").select("verify_token").limit(1)
     securityColumnsReady = !error
   } catch {
     securityColumnsReady = false
   }
+  securityProbedAt = Date.now()
   return securityColumnsReady
 }
 
 /** Call after the migration has been applied to clear the cached probe. */
 export function resetSchemaProbe(): void {
   securityColumnsReady = null
+  securityProbedAt = 0
 }
 
 /* ------------------------------------------------------------------ */

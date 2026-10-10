@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "node scripts/smoke.test.js"
+    "test": "node scripts/smoke.test.js",
+    "test:reset": "node scripts/test-reset.js",
+    "test:live": "node scripts/verify-live.js https://apthamithra.vercel.app"
   },
   "dependencies": {
     "@radix-ui/react-select": "^2.3.8",
