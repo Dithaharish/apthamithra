@@ -7,22 +7,6 @@ import { db } from "@/lib/db"
 import { ORDER_FLOW, ORDER_STATUS_LABEL } from "@/lib/order-status"
 import { AdminOrderStatus } from "@/components/admin-order-status"
 
-/**
- * Order detail pages are rendered on demand, so prerendering a list of ids is
- * only an optimisation. If the database is unreachable during the build —
- * credentials not yet present, network blocked — return an empty list rather
- * than failing the whole build. Any id will still work at request time.
- */
-export async function generateStaticParams() {
-  try {
-    const orders = await db.order.findMany()
-    return orders.map((o) => ({ id: o.id }))
-  } catch (err) {
-    console.warn("generateStaticParams skipped for orders:", err instanceof Error ? err.message : err)
-    return []
-  }
-}
-
 export default async function AdminOrderDetailPage({
   params,
 }: {
