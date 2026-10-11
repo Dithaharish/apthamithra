@@ -2,7 +2,8 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Calendar, ShoppingBag, FileText, Truck, User, LogOut, Settings } from "lucide-react"
+import { LayoutDashboard, Calendar, ShoppingBag, FileText, Truck, User, Settings } from "lucide-react"
+import { SignOutButton } from "@/components/sign-out-button"
 
 const items = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -32,7 +33,7 @@ export function DashboardNav() {
       </nav>
       <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800">
         <Link href="/admin" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-800"><Settings className="h-4 w-4" /> Admin Panel</Link>
-        <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"><LogOut className="h-4 w-4" /> Sign Out</button>
+        <SignOutButton />
       </div>
     </aside>
   )

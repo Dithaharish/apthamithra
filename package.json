@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "node scripts/smoke.test.js",
     "test:reset": "node scripts/test-reset.js",
+    "test:logout": "node scripts/test-logout.js",
     "test:live": "node scripts/verify-live.js https://apthamithra.vercel.app"
   },
   "dependencies": {

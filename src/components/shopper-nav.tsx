@@ -2,16 +2,17 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { SignOutButton } from "@/components/sign-out-button"
 import {
   LayoutDashboard,
   Calendar,
   ShoppingBag,
   Users,
-  Star,
-  LogOut,
-  User as UserIcon,
   ClipboardList,
+  Star,
+  User as UserIcon,
 } from "lucide-react"
+
 const items = [
   { href: "/shopper", label: "Today", icon: LayoutDashboard },
   { href: "/shopper/appointments", label: "Appointments", icon: Calendar },
@@ -53,9 +54,7 @@ export function ShopperNav() {
           <Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
           <span>Your rating shows to customers</span>
         </div>
-        <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30">
-          <LogOut className="h-4 w-4" /> Sign Out
-        </button>
+        <SignOutButton />
       </div>
     </aside>
   )

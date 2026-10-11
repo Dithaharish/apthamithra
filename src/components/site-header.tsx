@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { HeaderAuth } from "@/components/header-auth"
 import { Button } from "@/components/ui/button"
 const links = [
   { href: "#services", label: "Services" },
@@ -21,7 +22,7 @@ export function SiteHeader() {
           {links.map(l => <a key={l.href} href={l.href} className="hover:text-zinc-900 dark:hover:text-white transition-colors">{l.label}</a>)}
         </nav>
         <div className="flex items-center gap-2">
-          <Link href="/login" className="hidden sm:inline-flex text-sm font-medium px-4 py-2 hover:underline">Log in</Link>
+          <HeaderAuth />
           <Link href="/book"><Button size="sm" variant="secondary">Book Appointment</Button></Link>
         </div>
       </div>
