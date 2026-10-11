@@ -4,7 +4,7 @@ export const instant = false
 import Link from "next/link"
 import { MapPin, ArrowRight } from "lucide-react"
 import { getShopperContext, myOrders, myCustomers } from "@/lib/shopper"
-import { ORDER_STATUS_LABEL } from "@/lib/db"
+import { ORDER_STATUS_LABEL } from "@/lib/order-status"
 
 export default async function ShopperOrdersPage() {
   const ctx = await getShopperContext()

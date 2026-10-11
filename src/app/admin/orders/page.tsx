@@ -2,8 +2,9 @@ export const instant = false
 
 import Link from "next/link"
 import { MapPin, Truck, CheckCircle, Clock, X, Search } from "lucide-react"
-import { db, ORDER_STATUS_LABEL } from "@/lib/db"
-import type { OrderStatus } from "@/lib/db"
+import { db } from "@/lib/db"
+import { ORDER_STATUS_LABEL } from "@/lib/order-status"
+import type { OrderStatus } from "@/lib/order-status"
 import { AdminOrderStatus } from "@/components/admin-order-status"
 
 const statusIcon: Record<string, typeof Clock> = {

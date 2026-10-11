@@ -11,6 +11,7 @@
  */
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
+import type { OrderStatus } from "./order-status"
 
 /* ------------------------------------------------------------------ */
 /* Types (unchanged public API)                                        */
@@ -24,17 +25,6 @@ export type AppointmentStatus =
   | "completed"
   | "cancelled"
   | "rescheduled"
-
-export type OrderStatus =
-  | "pending"
-  | "purchasing"
-  | "qc_pending"
-  | "qc_approved"
-  | "paid"
-  | "packed"
-  | "shipped"
-  | "delivered"
-  | "cancelled"
 
 export interface User {
   id: string
@@ -409,37 +399,10 @@ export function resetSchemaProbe(): void {
 }
 
 /* ------------------------------------------------------------------ */
-/* Order lifecycle                                                     */
-/* ------------------------------------------------------------------ */
 
-export const ORDER_FLOW: OrderStatus[] = [
-  "pending",
-  "purchasing",
-  "qc_pending",
-  "qc_approved",
-  "paid",
-  "packed",
-  "shipped",
-  "delivered",
-]
-
-export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
-  pending: "Awaiting confirmation",
-  purchasing: "Shopping in progress",
-  qc_pending: "QC awaiting approval",
-  qc_approved: "QC approved",
-  paid: "Payment confirmed",
-  packed: "Packed & ready",
-  shipped: "In transit",
-  delivered: "Delivered",
-  cancelled: "Cancelled",
-}
-
-export function nextOrderStatus(current: OrderStatus): OrderStatus | null {
-  const index = ORDER_FLOW.indexOf(current)
-  if (index < 0 || index === ORDER_FLOW.length - 1) return null
-  return ORDER_FLOW[index + 1]
-}
+/* Re-exported for backwards compatibility with existing call sites. */
+export { ORDER_FLOW, ORDER_STATUS_LABEL, nextOrderStatus } from "./order-status"
+export type { OrderStatus } from "./order-status"
 
 /**
  * URL-safe secret used for password-reset and email-verification links.

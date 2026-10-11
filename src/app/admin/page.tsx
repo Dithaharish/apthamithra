@@ -4,7 +4,8 @@ export const instant = false
 
 import Link from "next/link"
 import { ShoppingBag, Users, Calendar, Star, DollarSign, Clock } from "lucide-react"
-import { db, ORDER_STATUS_LABEL } from "@/lib/db"
+import { db } from "@/lib/db"
+import { ORDER_STATUS_LABEL } from "@/lib/order-status"
 
 export default async function AdminDashboardPage() {
   const allOrders = await db.order.findMany()

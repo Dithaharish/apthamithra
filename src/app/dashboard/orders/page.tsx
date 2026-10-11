@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { ShoppingBag, MapPin, Star, Camera, Truck, CheckCircle, Clock, X } from "lucide-react"
 import { getCustomerContext, getCustomerData, isr, orderTotal, STATUS_STYLE, itemsByOrder } from "@/lib/customer"
-import { ORDER_STATUS_LABEL } from "@/lib/db"
+import { ORDER_STATUS_LABEL } from "@/lib/order-status"
 
 const statusIcon: Record<string, typeof Clock> = {
   pending: Clock,

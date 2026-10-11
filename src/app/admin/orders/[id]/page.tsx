@@ -3,7 +3,8 @@ export const instant = false
 
 
 import { Store, MapPin, DollarSign, Package, Camera, Truck } from "lucide-react"
-import { db, ORDER_FLOW, ORDER_STATUS_LABEL } from "@/lib/db"
+import { db } from "@/lib/db"
+import { ORDER_FLOW, ORDER_STATUS_LABEL } from "@/lib/order-status"
 import { AdminOrderStatus } from "@/components/admin-order-status"
 
 export async function generateStaticParams() {

@@ -3,7 +3,7 @@ export const instant = false
 import { Badge } from "@/components/ui/badge"
 import { Truck, MapPin, Package } from "lucide-react"
 import { getCustomerContext, getCustomerData, isr, STATUS_STYLE } from "@/lib/customer"
-import { ORDER_STATUS_LABEL } from "@/lib/db"
+import { ORDER_STATUS_LABEL } from "@/lib/order-status"
 
 export default async function CustomerShipmentsPage() {
   const customer = await getCustomerContext()

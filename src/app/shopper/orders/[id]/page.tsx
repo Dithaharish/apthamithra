@@ -5,7 +5,8 @@ export const instant = false
 import { Badge } from "@/components/ui/badge"
 import { MapPin, Store, Package, Truck, Camera, DollarSign } from "lucide-react"
 import { getShopperContext } from "@/lib/shopper"
-import { db, ORDER_FLOW, ORDER_STATUS_LABEL } from "@/lib/db"
+import { db } from "@/lib/db"
+import { ORDER_FLOW, ORDER_STATUS_LABEL } from "@/lib/order-status"
 import { ShopperOrderActions } from "@/components/shopper-order-actions"
 
 export default async function ShopperOrderDetailPage({

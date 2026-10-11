@@ -4,8 +4,8 @@ export const instant = false
 import Link from "next/link"
 import { ClipboardList, Camera, Truck, Package, CheckCircle } from "lucide-react"
 import { getShopperContext, myAppointments, myOrders, myCustomers } from "@/lib/shopper"
-import { ORDER_STATUS_LABEL } from "@/lib/db"
-import type { OrderStatus } from "@/lib/db"
+import { ORDER_STATUS_LABEL } from "@/lib/order-status"
+import type { OrderStatus } from "@/lib/order-status"
 
 interface Task {
   id: string

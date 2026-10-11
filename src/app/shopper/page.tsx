@@ -16,7 +16,7 @@ import {
   ArrowRight,
 } from "lucide-react"
 import { getShopperContext, myAppointments, myOrders, myCustomers } from "@/lib/shopper"
-import { ORDER_STATUS_LABEL } from "@/lib/db"
+import { ORDER_STATUS_LABEL } from "@/lib/order-status"
 
 const modeIcon = { video: Video, app: Phone, phone: MessageSquare } as const
 

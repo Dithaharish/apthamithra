@@ -9,8 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ORDER_STATUS_LABEL } from "@/lib/db"
-import type { OrderStatus } from "@/lib/db"
+import { ORDER_STATUS_LABEL } from "@/lib/order-status"
+import type { OrderStatus } from "@/lib/order-status"
 
 export function AdminOrderStatus({
   orderId,

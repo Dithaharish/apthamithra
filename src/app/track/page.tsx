@@ -4,7 +4,8 @@ import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { Badge } from "@/components/ui/badge"
 import { Package, Truck, MapPin, Camera, CheckCircle, Clock, Search } from "lucide-react"
-import { db, ORDER_FLOW, ORDER_STATUS_LABEL } from "@/lib/db"
+import { db } from "@/lib/db"
+import { ORDER_FLOW, ORDER_STATUS_LABEL } from "@/lib/order-status"
 import { isUuid } from "@/lib/validate"
 
 const STAGE_ICON: Record<string, typeof Clock> = {

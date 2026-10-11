@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/auth"
-import { db, ORDER_FLOW } from "@/lib/db"
+import { db } from "@/lib/db"
+import { ORDER_FLOW } from "@/lib/order-status"
 import { isUuid } from "@/lib/validate"
-import type { OrderStatus } from "@/lib/db"
+import type { OrderStatus } from "@/lib/order-status"
 
 const SERVICE_RATE = 0.12
 const HANDLING = 15

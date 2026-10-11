@@ -3,7 +3,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Camera, Truck, Package } from "lucide-react"
-import type { OrderStatus } from "@/lib/db"
+import type { OrderStatus } from "@/lib/order-status"
 
 export function ShopperOrderActions({
   orderId,
