@@ -8,6 +8,8 @@ import { getShopperContext } from "@/lib/shopper"
 import { db } from "@/lib/db"
 import { ORDER_FLOW, ORDER_STATUS_LABEL } from "@/lib/order-status"
 import { ShopperOrderActions } from "@/components/shopper-order-actions"
+import { QCUploadForm } from "@/components/qc-upload-form"
+import { ShippingForm } from "@/components/shipping-form"
 
 export default async function ShopperOrderDetailPage({
   params,
@@ -28,6 +30,8 @@ export default async function ShopperOrderDetailPage({
   const customer = await db.user.findUnique({ id: order.customerId })
   const items = await db.orderItem.findMany({ orderId: id })
   const qcs = await db.qcImage.findMany({ orderId: id })
+  const shipments = await db.shipment.findMany({ orderId: id })
+  const shipment = shipments[0] ?? null
   const shopList = await db.shop.findMany()
   const shopName = (fallback: string | null) =>
     (order.shopId && shopList.find((s) => s.id === order.shopId)?.name) ||
@@ -122,6 +126,42 @@ export default async function ShopperOrderDetailPage({
                   </li>
                 ))}
               </ul>
+            )}
+            {/* Shown while shopping, so the order can leave the stuck state. */}
+            {(order.status === "pending" || order.status === "purchasing") && (
+              <QCUploadForm orderId={order.id} />
+            )}
+          </section>
+
+          <section className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6">
+            <h2 className="font-semibold flex items-center gap-2">
+              <Truck className="h-4 w-4 text-amber-600" /> Shipping
+            </h2>
+            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+              Set the freight charge once the packed weight is known. Packing and
+              dispatch are blocked until a shipping amount exists.
+            </p>
+            {order.shipping > 0 ? (
+              <dl className="mt-4 space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <dt className="text-zinc-500">Shipping</dt>
+                  <dd className="font-medium">₹{order.shipping.toLocaleString("en-IN")}</dd>
+                </div>
+                {shipment && (
+                  <>
+                    <div className="flex justify-between">
+                      <dt className="text-zinc-500">Courier</dt>
+                      <dd>{shipment.courier}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-zinc-500">Tracking</dt>
+                      <dd className="font-mono text-xs">{shipment.trackingNo ?? "Pending"}</dd>
+                    </div>
+                  </>
+                )}
+              </dl>
+            ) : (
+              <ShippingForm orderId={order.id} />
             )}
           </section>
         </div>

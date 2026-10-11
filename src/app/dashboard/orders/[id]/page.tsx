@@ -103,20 +103,21 @@ export default async function CustomerOrderDetailPage({
                 Quality-check photos are shared here before anything is packed.
               </p>
             ) : (
-              <>
-                <ul className="mt-4 space-y-2 text-sm">
-                  {qcs.map((qc) => (
-                    <li key={qc.id} className="flex items-center justify-between">
-                      <span>{qc.caption ?? "QC photo"}</span>
-                      <Badge className={qc.approved ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}>
-                        {qc.approved ? "Approved" : "Awaiting your approval"}
-                      </Badge>
-                    </li>
-                  ))}
-                </ul>
-                {order.status === "qc_pending" && <QCApproval orderId={order.id} />}
-              </>
+              <ul className="mt-4 space-y-2 text-sm">
+                {qcs.map((qc) => (
+                  <li key={qc.id} className="flex items-center justify-between">
+                    <span>{qc.caption ?? "QC photo"}</span>
+                    <Badge className={qc.approved ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}>
+                      {qc.approved ? "Approved" : "Awaiting your approval"}
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
             )}
+            {/* Approval is available whenever the order is awaiting it, even with
+                no photos yet — hiding it behind a non-empty list left orders
+                permanently stuck. */}
+            {order.status === "qc_pending" && <QCApproval orderId={order.id} />}
           </section>
 
           {order.status === "delivered" && (
