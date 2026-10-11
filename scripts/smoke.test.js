@@ -190,7 +190,11 @@ async function main() {
   })
   check("admin moderates review", moderate.status === 200, `status ${moderate.status}`)
 
-  // Admin CRUD for shoppers and shops
+  // Admin CRUD for shoppers and shops --------------------------------------------------
+  // This script creates records to prove the write paths work, so it removes
+  // them again. Without this the database accumulates duplicates on every run.
+  const createdShopIds = []
+
   const newShopper = await json("/api/admin/shoppers", admin, {
     method: "POST",
     body: JSON.stringify({
@@ -225,9 +229,10 @@ async function main() {
 
   const newShop = await json("/api/admin/shops", admin, {
     method: "POST",
-    body: JSON.stringify({ name: "Smoke Test Shop", city: "Testpur", category: ["Sweets"], verified: true }),
+    body: JSON.stringify({ name: `Smoke Test Shop ${createdShopIds.length + 1}`, city: "Testpur", category: ["Sweets"], verified: true }),
   })
   check("admin creates shop", newShop.status === 200, `id=${newShop.body?.shop?.id}`)
+  if (newShop.body?.shop?.id) createdShopIds.push(newShop.body.shop.id)
 
   const shopId = newShop.body?.shop?.id
   if (shopId) {
@@ -243,6 +248,24 @@ async function main() {
     body: JSON.stringify({ id: "SPK-001", available: true }),
   })
   check("admin edit rejects malformed id", badId.status === 400, `status ${badId.status}`)
+
+  // Remove what this run created so re-running does not pollute the database.
+  if (createdShopIds.length) {
+    const { createClient } = require("@supabase/supabase-js")
+    const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false },
+    })
+    await sb.from("shops").delete().in("id", createdShopIds)
+    console.log(`cleaned up ${createdShopIds.length} test shop(s)`)
+  }
+  if (shopperId) {
+    const { createClient } = require("@supabase/supabase-js")
+    const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false },
+    })
+    await sb.from("shoppers").delete().eq("id", shopperId)
+    console.log("cleaned up test shopper")
+  }
 
   // Password reset flow
   const forgotUnknown = await json("/api/auth/forgot-password", null, {

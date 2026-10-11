@@ -8,27 +8,20 @@ export interface ShopperContext {
 }
 
 /**
- * Resolve the signed-in shopper. If the account has no shopper profile yet
- * (for example a staff member added after seed), one is created so the
- * workspace is usable rather than empty.
+ * Resolve the signed-in shopper.
+ *
+ * A profile is never created implicitly. Doing so would silently turn any
+ * account that reached this code into staff, which is a privilege-escalation
+ * path — a customer whose id leaked through could gain a shopper profile and
+ * see other customers' appointments. Staff profiles are created deliberately
+ * from the admin panel instead.
  */
 export async function getShopperContext(): Promise<ShopperContext | null> {
   const session = await getServerSession(authOptions)
   if (!session?.user) return null
 
-  const id = session.user.id
-  let shopper = await db.shopper.findUnique({ userId: id })
-  if (!shopper) {
-    const user = await db.user.findUnique({ id })
-    shopper = await db.shopper.create({
-      data: {
-        userId: id,
-        name: user?.name ?? "Shopper",
-        city: "Delhi",
-        languages: [user?.language ?? "English"],
-      },
-    })
-  }
+  const shopper = await db.shopper.findUnique({ userId: session.user.id })
+  if (!shopper) return null
 
   return {
     user: {
