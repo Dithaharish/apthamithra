@@ -2,10 +2,11 @@
 export const instant = false
 
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+
 import { MapPin, Languages, Star, CheckCircle } from "lucide-react"
 import { getShopperContext } from "@/lib/shopper"
 import { ShopperAvailabilityToggle } from "@/components/shopper-availability-toggle"
+import { ShopperProfileEditor } from "@/components/shopper-profile-editor"
 
 export default async function ShopperProfilePage() {
   const ctx = await getShopperContext()
@@ -43,7 +44,7 @@ export default async function ShopperProfilePage() {
               </div>
             </div>
           </div>
-          <Button variant="outline">Edit profile</Button>
+          <ShopperProfileEditor shopper={shopper} />
         </div>
 
         <div className="mt-6 grid sm:grid-cols-2 gap-4 text-sm">

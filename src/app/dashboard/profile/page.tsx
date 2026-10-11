@@ -2,7 +2,7 @@ export const instant = false
 
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+
 import { MapPin, Languages, Mail, Phone, Clock } from "lucide-react"
 import { getCustomerContext } from "@/lib/customer"
 import { db } from "@/lib/db"
@@ -32,7 +32,6 @@ export default async function CustomerProfilePage() {
               <div className="mt-2"><Badge className="bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300">Active customer</Badge></div>
             </div>
           </div>
-          <Button variant="outline">Edit profile</Button>
         </div>
 
         <div className="mt-6 grid sm:grid-cols-2 gap-4 text-sm">

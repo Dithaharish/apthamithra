@@ -1,11 +1,9 @@
 
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
+
 import { MapPin, Phone, Mail, Clock, Globe } from "lucide-react"
+import { ContactForm } from "@/components/contact-form"
 
 export default function ContactPage() {
   return (
@@ -27,13 +25,7 @@ export default function ContactPage() {
           </div>
           <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-sm">
             <h2 className="font-semibold">Send us a message</h2>
-            <form className="mt-5 space-y-4">
-              <div><Label htmlFor="name">Name</Label><Input id="name" className="mt-1.5" /></div>
-              <div><Label htmlFor="email">Email</Label><Input id="email" type="email" className="mt-1.5" /></div>
-              <div><Label htmlFor="subject">Subject</Label><Input id="subject" className="mt-1.5" /></div>
-              <div><Label htmlFor="msg">Message</Label><Textarea id="msg" rows={5} className="mt-1.5" /></div>
-              <Button type="submit" className="w-full">Send Message</Button>
-            </form>
+            <ContactForm />
           </div>
         </div>
       </main>

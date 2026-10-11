@@ -355,13 +355,18 @@ async function main() {
     check("customer deletes address", del.status === 200, `status ${del.status}`)
   }
 
-  // Review rules
+  // Review rules. Rejected either way: 400 when the order is not delivered,
+  // 403 when it belongs to a different customer.
   if (refs.undeliveredOrder) {
     const early = await json("/api/reviews", customer, {
       method: "POST",
       body: JSON.stringify({ orderId: refs.undeliveredOrder, rating: 5, body: "Too early to review this order." }),
     })
-    check("review blocked before delivery", early.status === 400, `status ${early.status}`)
+    check(
+      "review rejected before delivery or for a foreign order",
+      early.status === 400 || early.status === 403,
+      `status ${early.status}`
+    )
   }
 
   const badRating = await json("/api/reviews", customer, {

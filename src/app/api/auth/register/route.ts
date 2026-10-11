@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import bcrypt from "bcryptjs"
 import { sendEmail, verificationEmail } from "@/lib/email"
+import { normalizeEmail } from "@/lib/normalize"
 
 interface RegisterPayload {
   email?: string
@@ -21,14 +22,14 @@ export async function POST(req: NextRequest) {
     if (password.length < 6) {
       return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 })
     }
-    const existing = await db.user.findUnique({ email })
+    const existing = await db.user.findUnique({ email: normalizeEmail(email) })
     if (existing) {
       return NextResponse.json({ error: "Email already registered" }, { status: 400 })
     }
 
     const passwordHash = await bcrypt.hash(password, 10)
     const user = await db.user.create({
-      data: { email, passwordHash, name, country, timezone, language },
+      data: { email: normalizeEmail(email), passwordHash, name, country, timezone, language },
     })
 
     // Mail the verification link. A delivery failure must not fail registration,

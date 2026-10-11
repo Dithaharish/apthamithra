@@ -2,6 +2,7 @@ import type { NextAuthOptions } from "next-auth"
 import type { DefaultSession } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
+import { normalizeEmail } from "@/lib/normalize"
 import { db } from "@/lib/db"
 
 declare module "next-auth" {
@@ -26,7 +27,7 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
-        const user = await db.user.findUnique({ email: credentials.email })
+        const user = await db.user.findUnique({ email: normalizeEmail(credentials.email) })
         if (!user || !user.passwordHash) return null
         const valid = await bcrypt.compare(credentials.password, user.passwordHash)
         if (!valid) return null

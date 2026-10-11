@@ -19,7 +19,9 @@ export default async function ShopperOrderDetailPage({
   if (!ctx) return null
 
   const order = await db.order.findUnique({ id })
-  if (!order) {
+  // Scope to the calling shopper. Answering 404 rather than 403 avoids
+  // confirming which order ids exist.
+  if (!order || order.shopperId !== ctx.shopper.id) {
     return <p className="text-sm text-zinc-500">Order not found.</p>
   }
 

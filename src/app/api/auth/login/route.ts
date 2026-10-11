@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
+import { normalizeEmail } from "@/lib/normalize"
 import bcrypt from "bcryptjs"
 
 interface LoginPayload {
@@ -17,7 +18,7 @@ export async function POST(req: NextRequest) {
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password required" }, { status: 400 })
     }
-    const user = await db.user.findUnique({ email })
+    const user = await db.user.findUnique({ email: normalizeEmail(email) })
     if (!user || !user.passwordHash) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }

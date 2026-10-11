@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db, randomToken } from "@/lib/db"
 import { resetEmail, sendEmail } from "@/lib/email"
+import { normalizeEmail } from "@/lib/normalize"
 
 const RESET_TTL_MS = 60 * 60 * 1000 // 1 hour
 
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
       message: "If an account exists for that address, a reset link is on its way.",
     }
 
-    const user = await db.user.findUnique({ email: email.trim().toLowerCase() })
+    const user = await db.user.findUnique({ email: normalizeEmail(email) })
     if (!user || !user.passwordHash) {
       return NextResponse.json(generic)
     }

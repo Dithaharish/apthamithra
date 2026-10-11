@@ -9,9 +9,9 @@ export const metadata = {
 }
 
 const SECTIONS = [
-  { href: "/terms", label: "Terms of Service", icon: FileText },
-  { href: "/privacy", label: "Privacy Policy", icon: Eye },
-  { href: "/refunds", label: "Refund Policy", icon: RotateCcw },
+  { href: "/legal/terms", label: "Terms of Service", icon: FileText },
+  { href: "/legal/privacy", label: "Privacy Policy", icon: Eye },
+  { href: "/legal/refunds", label: "Refund Policy", icon: RotateCcw },
 ]
 
 const LAST_UPDATED = "10 October 2026"

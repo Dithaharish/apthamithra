@@ -23,7 +23,9 @@ export default async function ShopperAppointmentDetailPage({
   if (!ctx) return null
 
   const appointment = await db.appointment.findUnique({ id })
-  if (!appointment) {
+  // Scope to the calling shopper. Answering 404 rather than 403 avoids
+  // confirming which appointment ids exist.
+  if (!appointment || appointment.shopperId !== ctx.shopper.id) {
     return <p className="text-sm text-zinc-500">Appointment not found.</p>
   }
 
